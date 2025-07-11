@@ -120,7 +120,7 @@ if nome_excluir != "Nenhum" and st.sidebar.button("Excluir"):
     st.session_state.colaboradores = [c for c in st.session_state.colaboradores if c['Nome'] != nome_excluir]
     st.sidebar.success(f"Colaborador {nome_excluir} excluído.")
 
-st.title("Dashboard de Desempenho")
+st.title("Dashboard de Desempenho Universidade FGF")
 
 if st.session_state.colaboradores:
     df = pd.DataFrame(st.session_state.colaboradores)
