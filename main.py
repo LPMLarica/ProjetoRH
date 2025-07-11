@@ -55,6 +55,9 @@ uploaded_status = st.sidebar.file_uploader("Cursos com status", type=["xlsx"], k
 cursos_finalizado = set()
 finalizado_por_nome = {}
 cursos_nomes_por_nome = {}
+iniciados_por_nome = {}
+cursos_iniciados_nomes_por_nome = {}
+
 
 if uploaded_status:
     try:
