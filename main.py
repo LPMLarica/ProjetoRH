@@ -49,7 +49,7 @@ if uploaded_certificados:
         st.error(f"Erro ao ler a planilha de certificados: {e}")
 
 
-st.sidebar.markdown("### Planilha de Status dos Cursos")
+st.sidebar.markdown("### Planilha de Tarefas da equipe")
 uploaded_status = st.sidebar.file_uploader("Cursos com status", type=["xlsx"], key="status")
 
 cursos_finalizado = set()
