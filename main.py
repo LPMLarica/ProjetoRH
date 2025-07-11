@@ -66,7 +66,9 @@ if uploaded_status:
         else:
             df_status["Status do Curso"] = df_status["Status do Curso"].str.lower().str.strip()
             df_finalizado = df_status[df_status["Status do Curso"] == "finalizado"]
-
+            df_iniciado = df_status[df_status["Status do Curso"] == "iniciado"]
+            iniciados_por_nome = df_iniciado.groupby("Nome")["Curso"].nunique().to_dict()
+            cursos_iniciados_nomes_por_nome = df_iniciado.groupby("Nome")["Curso"].apply(list).to_dict()
             cursos_finalizado = set(zip(df_finalizado["Nome"], df_finalizado["Curso"]))
             finalizado_por_nome = df_finalizado.groupby("Nome")["Curso"].nunique().to_dict()
             cursos_nomes_por_nome = df_finalizado.groupby("Nome")["Curso"].apply(list).to_dict()
@@ -131,10 +133,19 @@ if st.session_state.colaboradores:
         cursos_status = cursos_nomes_por_nome.get(nome, [])
         cursos_cert = cursos_certificados_por_nome.get(nome, [])
         return ", ".join(cursos_status + cursos_cert)
+    
+    def combinar_nomes_iniciados(nome):
+        nome = normalizar_nome(nome)
+        return ", ".join(cursos_iniciados_nomes_por_nome.get(nome, []))
+
 
     df["Cursos Concluídos"] = df["Nome"].apply(combinar_cursos_concluidos)
     df["Cursos Concluídos (nomes)"] = df["Nome"].apply(combinar_nomes_cursos)
     df["Tempo de Estudo (h)"] = df["Nome"].apply(lambda n: tempo_por_nome.get(normalizar_nome(n), 0.0))
+    df["Cursos Iniciados"] = df["Nome"].apply(lambda n: iniciados_por_nome.get(normalizar_nome(n), 0))
+    df["Cursos Iniciados (nomes)"] = df["Nome"].apply(combinar_nomes_iniciados)
+
+
 
     df = df.sort_values(by="Aproveitamento (%)", ascending=False).reset_index(drop=True)
     df.index += 1
@@ -150,7 +161,7 @@ if st.session_state.colaboradores:
             y="Aproveitamento (%)",
             color=df["Ranking"].apply(lambda x: "🥇" if x == 1 else "🥈" if x == 2 else "🥉" if x == 3 else "Demais"),
             color_discrete_map={"🥇": "gold", "🥈": "lightgreen", "🥉": "mediumseagreen", "Demais": "lightblue"},
-            hover_data=["Certificados", "Cursos Concluídos", "Tempo de Estudo (h)", "Cursos Concluídos (nomes)", "Ranking"]
+            hover_data=["Certificados", "Cursos Concluídos", "Cursos Concluídos (nomes)", "Cursos Iniciados", "Cursos Iniciados (nomes)", "Tempo de Estudo (h)", "Ranking"]
         )
         bar_fig.update_layout(yaxis_range=[0, 100])
         st.plotly_chart(bar_fig, use_container_width=True)
