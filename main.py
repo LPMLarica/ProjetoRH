@@ -4,22 +4,44 @@ import pandas as pd
 
 st.set_page_config(layout="wide")
 
-# Sessão de estado para armazenar dados dos colaboradores
 if "colaboradores" not in st.session_state:
     st.session_state.colaboradores = []
 
-# Sidebar para adicionar colaborador
 with st.sidebar:
     st.title("Gerenciar Colaboradores")
+
+    uploaded_file = st.file_uploader("Importar planilha Excel (CEFiS)", type=["xlsx"])
+    if uploaded_file:
+        try:
+
+            df_excel = pd.read_excel(uploaded_file)
+            
+            df_grouped = df_excel.groupby("Nome").agg(
+                Certificados=("Nome", "count"),
+                Posicao=("Posição Organizacional", "first")
+            ).reset_index()
+
+            st.session_state.colaboradores = []
+
+            for _, row in df_grouped.iterrows():
+                aproveitamento = min(100, row["Certificados"] * 10)
+                st.session_state.colaboradores.append({
+                    "Nome": row["Nome"],
+                    "Certificados": row["Certificados"],
+                    "Aproveitamento (%)": aproveitamento,
+                    "Posição Organizacional": row["Posicao"]
+                })
+            st.success("Dados da planilha importados com sucesso!")
+        except Exception as e:
+            st.error(f"Erro ao ler a planilha: {e}")
+
     nome = st.text_input("Nome")
-    horas = st.number_input("Horas assistidas", min_value=0.0, step=0.5)
     certificados = st.number_input("Certificados", min_value=0, step=1)
 
     if st.button("Adicionar Colaborador"):
-        aproveitamento = min(100, horas * 2 + certificados * 10)
+        aproveitamento = min(100, certificados * 10)
         st.session_state.colaboradores.append({
             "Nome": nome,
-            "Horas": horas,
             "Certificados": certificados,
             "Aproveitamento (%)": aproveitamento
         })
@@ -50,13 +72,13 @@ if st.session_state.colaboradores:
             y="Aproveitamento (%)",
             color=df["Ranking"].apply(lambda x: "🥇" if x == 1 else "🥈" if x == 2 else "🥉" if x == 3 else "Demais"),
             color_discrete_map={"🥇": "gold", "🥈": "lightgreen", "🥉": "mediumseagreen", "Demais": "lightblue"},
-            hover_data=["Horas", "Certificados", "Ranking"]
+            hover_data=[ "Certificados", "Ranking"]
         )
         bar_fig.update_layout(yaxis_range=[0, 100])
         st.plotly_chart(bar_fig, use_container_width=True)
 
     with col2:
-        st.markdown("### Desempenho")
+        st.markdown("### Gráfico de Pizza (Participação no Desempenho)")
         pie_fig = px.pie(
             df,
             names="Nome",
