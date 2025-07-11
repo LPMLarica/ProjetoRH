@@ -12,9 +12,7 @@ st.sidebar.title("Gerenciar Colaboradores")
 def normalizar_nome(nome):
     return str(nome).strip().lower()
 
-
 uploaded_certificados = st.sidebar.file_uploader("Planilha de Certificados", type=["xlsx"], key="certificados")
-
 
 certificados_por_nome = {}
 cursos_certificados_por_nome = {}
@@ -48,7 +46,6 @@ if uploaded_certificados:
     except Exception as e:
         st.error(f"Erro ao ler a planilha de certificados: {e}")
 
-
 st.sidebar.markdown("### Planilha de Tarefas da equipe")
 uploaded_status = st.sidebar.file_uploader("Cursos com status", type=["xlsx"], key="status")
 
@@ -57,7 +54,6 @@ finalizado_por_nome = {}
 cursos_nomes_por_nome = {}
 iniciados_por_nome = {}
 cursos_iniciados_nomes_por_nome = {}
-
 
 if uploaded_status:
     try:
@@ -80,7 +76,6 @@ if uploaded_status:
     except Exception as e:
         st.sidebar.error(f"Erro ao processar status dos cursos: {e}")
 
-
 st.sidebar.markdown("### Planilha de Tempo de Estudo")
 uploaded_tempo = st.sidebar.file_uploader("Tempo de estudo por colaborador", type=["xlsx"], key="tempo")
 
@@ -98,7 +93,6 @@ if uploaded_tempo:
     except Exception as e:
         st.sidebar.error(f"Erro ao processar tempo de estudo: {e}")
 
-
 nome = st.sidebar.text_input("Nome")
 certificados = st.sidebar.number_input("Certificados", min_value=0, step=1)
 
@@ -110,7 +104,6 @@ if st.sidebar.button("Adicionar Colaborador"):
         "Certificados": certificados,
         "Aproveitamento (%)": aproveitamento
     })
-
 
 st.sidebar.markdown("---")
 st.sidebar.subheader("Excluir Colaborador")
@@ -141,14 +134,11 @@ if st.session_state.colaboradores:
         nome = normalizar_nome(nome)
         return ", ".join(cursos_iniciados_nomes_por_nome.get(nome, []))
 
-
     df["Cursos Concluídos"] = df["Nome"].apply(combinar_cursos_concluidos)
     df["Cursos Concluídos (nomes)"] = df["Nome"].apply(combinar_nomes_cursos)
     df["Tempo de Estudo (h)"] = df["Nome"].apply(lambda n: tempo_por_nome.get(normalizar_nome(n), 0.0))
     df["Cursos Iniciados"] = df["Nome"].apply(lambda n: iniciados_por_nome.get(normalizar_nome(n), 0))
     df["Cursos Iniciados (nomes)"] = df["Nome"].apply(combinar_nomes_iniciados)
-
-
 
     df = df.sort_values(by="Aproveitamento (%)", ascending=False).reset_index(drop=True)
     df.index += 1
@@ -183,3 +173,10 @@ if st.session_state.colaboradores:
 
     st.subheader("Tabela de Desempenho e Ranking")
     st.dataframe(df, use_container_width=True)
+
+    if "Tempo de Estudo (h)" in df.columns:
+        df["Tempo de Estudo (h)"] = pd.to_numeric(df["Tempo de Estudo (h)"], errors="coerce")
+        total_horas_estudo = df["Tempo de Estudo (h)"].sum()
+        st.markdown(f"**Soma Total de Horas de Estudo:** {total_horas_estudo:.2f} horas")
+    else:
+        st.markdown("**Soma Total de Horas de Estudo:** não disponível (coluna ausente)")
