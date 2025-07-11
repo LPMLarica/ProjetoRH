@@ -2,7 +2,7 @@ import streamlit as st
 import plotly.express as px
 import pandas as pd
 
-st.set_page_config(layout="wide")
+st.set_page_config(page_title="Desempenhos", page_icon="⭐", layout="wide")
 
 if "colaboradores" not in st.session_state:
     st.session_state.colaboradores = []
