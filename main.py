@@ -167,6 +167,8 @@ if st.session_state.colaboradores:
     df = df.sort_values(by="Aproveitamento (%)", ascending=False).reset_index(drop=True)
     df.index += 1
     df["Ranking"] = df.index
+    df["NomeExibicao"] = df["Nome"] + " - " + df["Aproveitamento (%)"].astype(int).astype(str) + "%"
+
 
     col1, col2 = st.columns(2)
 
@@ -184,17 +186,16 @@ if st.session_state.colaboradores:
         st.plotly_chart(bar_fig, use_container_width=True)
 
     with col2:
-        st.markdown("### Gráfico de Pizza")
-        pie_fig = px.pie(
+        st.markdown("### Gráfico Treemap de Aproveitamento")
+        treemap_fig = px.treemap(
             df,
-            names="Nome",
+            path=["NomeExibicao"],
             values="Aproveitamento (%)",
-            title="Distribuição de Aproveitamento",
-            color_discrete_sequence=px.colors.sequential.RdBu
+            color="Aproveitamento (%)",
+            color_continuous_scale="magma",
+            hover_data={"Certificados": True, "Cursos Concluídos": True, "Tempo de Estudo (h)": True}
         )
-        pie_fig.update_traces(textposition='inside', textinfo='percent+label')
-        st.plotly_chart(pie_fig, use_container_width=True)
-
+        st.plotly_chart(treemap_fig, use_container_width=True)
     st.subheader("Tabela de Desempenho e Ranking")
     st.dataframe(df, use_container_width=True)
 
