@@ -1,6 +1,7 @@
 import streamlit as st
 import plotly.express as px
 import pandas as pd
+import re
 
 st.set_page_config(page_title="Desempenhos", page_icon="⭐", layout="wide")
 
@@ -81,15 +82,38 @@ uploaded_tempo = st.sidebar.file_uploader("Tempo de estudo por colaborador", typ
 
 tempo_por_nome = {}
 
+def extrair_numero(texto):
+    if pd.isna(texto):
+        return 0.0
+    if isinstance(texto, (int, float)):
+        return float(texto)
+    
+    texto = str(texto).replace(",", ".")
+    match = re.search(r"[\d\.]+", texto)
+    if match:
+        try:
+            return float(match.group())
+        except:
+            return 0.0
+    return 0.0
+
+def formatar_horas_minutos(valor):
+    horas = int(valor)
+    minutos = int(round((valor - horas) * 60))
+    return f"{horas}h {minutos}min"
+
+
 if uploaded_tempo:
     try:
         df_tempo = pd.read_excel(uploaded_tempo)
         df_tempo["Nome"] = df_tempo["Nome"].apply(normalizar_nome)
+        
         if not {"Nome", "Tempo de Estudo no Período"}.issubset(df_tempo.columns):
             st.sidebar.error("A planilha deve conter: Nome, Tempo de Estudo no Período.")
         else:
+            df_tempo["Tempo de Estudo no Período"] = df_tempo["Tempo de Estudo no Período"].apply(extrair_numero)
             tempo_por_nome = df_tempo.groupby("Nome")["Tempo de Estudo no Período"].sum().to_dict()
-            st.sidebar.success("Tempo de estudo importado com sucesso!")
+            total_geral = df_tempo["Tempo de Estudo no Período"].sum()
     except Exception as e:
         st.sidebar.error(f"Erro ao processar tempo de estudo: {e}")
 
